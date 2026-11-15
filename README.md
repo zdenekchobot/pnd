@@ -18,14 +18,15 @@ Při každé aktualizaci stáhne souhrnnou tabulku sestavy „00 Profil spotřeb
 | `sensor.elm<číslo>_import_status` | PND import - stav / status | řada +A, Úplnost dat | % |
 | `sensor.elm<číslo>_export` | PND export | řada −A, Celkem v intervalu | kWh |
 | `sensor.elm<číslo>_export_status` | PND export - stav / status | řada −A, Úplnost dat | % |
-| `sensor.elm<číslo>_end_date` | Data do: / End date | konec dat v portálu | datum a čas |
+| `sensor.elm<číslo>_end_date` | Data do: / End date | konec vyžádaného intervalu | datum a čas |
 | `datetime.elm<číslo>_start_date` | Data od: / Start date | nastavení integrace | datum a čas |
 
 Všechny entity patří zařízení `ELM<číslo>`. Hodnoty importu a exportu mají 3 desetinná místa,
 `device_class: energy` a `state_class: total` s `last_reset` = „Data od“.
 
-„Data do:“ ukazuje, do kdy portál data skutečně má. ČEZ je doplňuje se zpožděním, obvykle
-jednou denně, proto bývá o několik hodin až den za aktuálním časem.
+„Data do:“ je konec intervalu, za který se data při posledním čtení vyžádala, tedy čas toho
+čtení (na minuty). Hodnoty importu a exportu za poslední hodiny ale ještě nemusí být kompletní,
+protože ČEZ data doplňuje se zpožděním. Míru doplnění ukazují senzory „stav“ (Úplnost dat).
 
 ## Instalace
 
