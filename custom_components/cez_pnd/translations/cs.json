@@ -82,6 +82,11 @@
       "start_date": {
         "name": "Data od:"
       }
+    },
+    "binary_sensor": {
+      "status": {
+        "name": "PND status"
+      }
     }
   }
 }

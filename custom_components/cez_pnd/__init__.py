@@ -17,7 +17,7 @@ from .coordinator import PndCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.DATETIME, Platform.SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.DATETIME, Platform.SENSOR]
 
 type PndConfigEntry = ConfigEntry[PndCoordinator]
 

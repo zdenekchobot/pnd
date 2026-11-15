@@ -20,9 +20,15 @@ Při každé aktualizaci stáhne souhrnnou tabulku sestavy „00 Profil spotřeb
 | `sensor.elm<číslo>_export_status` | PND export - stav / status | řada −A, Úplnost dat | % |
 | `sensor.elm<číslo>_end_date` | Data do: / End date | konec vyžádaného intervalu | datum a čas |
 | `datetime.elm<číslo>_start_date` | Data od: / Start date | nastavení integrace | datum a čas |
+| `binary_sensor.elm<číslo>_status` | PND status | výsledek posledního stahování | zapnuto = problém |
 
 Všechny entity patří zařízení `ELM<číslo>`. „Data od:“ a „Data do:“ mají ikonu `mdi:calendar-clock`,
-senzory stavu `mdi:progress-pencil`. Hodnoty importu a exportu mají 3 desetinná místa,
+senzory stavu `mdi:progress-pencil`.
+
+`PND status` (`device_class: problem`, ikona `mdi:refresh`) se zapne, když poslední stažení
+selže (přihlášení, síť, chyba portálu). Text chyby je v atributu `error`. Hodí se pro
+automatizaci s upozorněním. Pokud se nepodaří úplně první načtení po startu HA, integrace se
+nenačte vůbec a Home Assistant ji zkouší načíst znovu; to je vidět u integrace v Nastavení. Hodnoty importu a exportu mají 3 desetinná místa,
 `device_class: energy` a `state_class: total` s `last_reset` = „Data od“.
 
 „Data do:“ je konec intervalu, za který se data při posledním čtení vyžádala, tedy čas toho

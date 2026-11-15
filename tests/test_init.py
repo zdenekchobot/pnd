@@ -225,3 +225,32 @@ async def test_brand_icons(hass: HomeAssistant) -> None:
 
     integration = await async_get_integration(hass, DOMAIN)
     assert integration.has_branding
+
+
+async def test_status_binary_sensor(hass: HomeAssistant, mock_client) -> None:
+    from custom_components.cez_pnd.api import PndError
+
+    entry = _entry()
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    eid = "binary_sensor.elm123456_status"
+    st = hass.states.get(eid)
+    assert st.state == "off"
+    assert st.attributes["friendly_name"] == "PND status"
+    assert st.attributes["icon"] == "mdi:refresh"
+    assert st.attributes["device_class"] == "problem"
+    assert er.async_get(hass).async_get(eid).unique_id == "elm123456_status"
+
+    coordinator = entry.runtime_data
+    mock_client["get_stats"].side_effect = PndError("portál nedostupný")
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    st = hass.states.get(eid)
+    assert st.state == "on"
+    assert "portál nedostupný" in st.attributes["error"]
+
+    mock_client["get_stats"].side_effect = None
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(eid).state == "off"
