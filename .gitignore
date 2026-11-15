@@ -3,3 +3,4 @@ __pycache__/
 *.har
 .venv/
 .pytest_cache/
+CLAUDE.md
