@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sign in to PND",
+        "description": "Credentials for the ČEZ Distribuce metering data portal (PND).",
+        "data": {
+          "username": "E-mail",
+          "password": "Password",
+          "scan_interval": "Update interval"
+        },
+        "data_description": {
+          "scan_interval": "How often to download data (15–1440 minutes)."
+        }
+      },
+      "electrometer": {
+        "title": "Meter and period",
+        "data": {
+          "electrometer": "Meter number",
+          "date_from": "Start date"
+        },
+        "data_description": {
+          "date_from": "Start of the period; the end is always the time of reading."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in again",
+        "description": "Enter a new password for {username}.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials",
+      "cannot_connect": "Cannot connect to the portal",
+      "no_devices": "The account has no meter",
+      "invalid_date": "Invalid date"
+    },
+    "abort": {
+      "already_configured": "This meter is already configured",
+      "reauth_successful": "Re-authentication successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Settings",
+        "data": {
+          "date_from": "Start date",
+          "scan_interval": "Update interval"
+        },
+        "data_description": {
+          "date_from": "Start of the period; the end is always the time of reading.",
+          "scan_interval": "How often to download data (15–1440 minutes)."
+        }
+      }
+    },
+    "error": {
+      "invalid_date": "Invalid date"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "import": {
+        "name": "PND import"
+      },
+      "import_status": {
+        "name": "PND import - status"
+      },
+      "export": {
+        "name": "PND export"
+      },
+      "export_status": {
+        "name": "PND export - status"
+      },
+      "end_date": {
+        "name": "End date"
+      }
+    },
+    "datetime": {
+      "start_date": {
+        "name": "Start date"
+      }
+    }
+  }
+}

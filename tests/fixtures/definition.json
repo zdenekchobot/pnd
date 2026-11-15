@@ -1,0 +1,31 @@
+{
+ "assemblies": [
+  {
+   "value": -100,
+   "label": "Rychlá sestava",
+   "description": null,
+   "level": 0,
+   "additionalInfo": {
+    "ds": true
+   }
+  }
+ ],
+ "deviceSets": [
+  {
+   "value": 10001,
+   "label": "Všechny EANy",
+   "description": null,
+   "level": 0,
+   "additionalInfo": {}
+  }
+ ],
+ "electrometers": [
+  {
+   "value": "123456",
+   "label": "ELM 123456",
+   "description": null,
+   "level": 0,
+   "additionalInfo": {}
+  }
+ ]
+}

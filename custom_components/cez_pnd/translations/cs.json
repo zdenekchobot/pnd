@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Přihlášení do PND",
+        "description": "Přihlašovací údaje do Portálu naměřených dat ČEZ Distribuce.",
+        "data": {
+          "username": "E-mail",
+          "password": "Heslo",
+          "scan_interval": "Interval aktualizace"
+        },
+        "data_description": {
+          "scan_interval": "Jak často se mají data stahovat (15–1440 minut)."
+        }
+      },
+      "electrometer": {
+        "title": "Elektroměr a období",
+        "data": {
+          "electrometer": "Číslo elektroměru",
+          "date_from": "Data od"
+        },
+        "data_description": {
+          "date_from": "Začátek období; konec je vždy okamžik čtení."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Nové přihlášení",
+        "description": "Zadej nové heslo pro účet {username}.",
+        "data": {
+          "password": "Heslo"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Neplatné přihlašovací údaje",
+      "cannot_connect": "Nelze se připojit k portálu",
+      "no_devices": "Účet nemá žádný elektroměr",
+      "invalid_date": "Neplatné datum"
+    },
+    "abort": {
+      "already_configured": "Tento elektroměr už je nastaven",
+      "reauth_successful": "Přihlášení obnoveno"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Nastavení",
+        "data": {
+          "date_from": "Data od",
+          "scan_interval": "Interval aktualizace"
+        },
+        "data_description": {
+          "date_from": "Začátek období; konec je vždy okamžik čtení.",
+          "scan_interval": "Jak často se mají data stahovat (15–1440 minut)."
+        }
+      }
+    },
+    "error": {
+      "invalid_date": "Neplatné datum"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "import": {
+        "name": "PND import"
+      },
+      "import_status": {
+        "name": "PND import - stav"
+      },
+      "export": {
+        "name": "PND export"
+      },
+      "export_status": {
+        "name": "PND export - stav"
+      },
+      "end_date": {
+        "name": "Data do:"
+      }
+    },
+    "datetime": {
+      "start_date": {
+        "name": "Data od:"
+      }
+    }
+  }
+}
