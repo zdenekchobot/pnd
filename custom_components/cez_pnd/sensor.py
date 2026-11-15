@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 
 from . import PndConfigEntry
 from .coordinator import PndCoordinator, PndData
-from .entity import PndEntity, async_entity_names
+from .entity import DATE_ICON, PndEntity, async_entity_names
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -40,6 +40,7 @@ SENSORS: tuple[PndSensorDescription, ...] = (
     ),
     PndSensorDescription(
         key="import_status",
+        icon="mdi:progress-pencil",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=PERCENTAGE,
         suggested_display_precision=3,
@@ -55,6 +56,7 @@ SENSORS: tuple[PndSensorDescription, ...] = (
     ),
     PndSensorDescription(
         key="export_status",
+        icon="mdi:progress-pencil",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=PERCENTAGE,
         suggested_display_precision=3,
@@ -62,6 +64,7 @@ SENSORS: tuple[PndSensorDescription, ...] = (
     ),
     PndSensorDescription(
         key="end_date",
+        icon=DATE_ICON,
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda d: d.end_date,
     ),

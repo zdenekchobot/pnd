@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 from . import PndConfigEntry
 from .const import CONF_DATE_FROM, DATE_FMT
 from .coordinator import PndCoordinator
-from .entity import PndEntity, async_entity_names
+from .entity import DATE_ICON, PndEntity, async_entity_names
 
 KEY = "start_date"
 
@@ -31,6 +31,7 @@ class PndStartDate(PndEntity, DateTimeEntity):
     """Začátek období; změna se uloží do nastavení a integrace se znovu načte."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = DATE_ICON
 
     def __init__(self, coordinator: PndCoordinator, entry: PndConfigEntry, name: str) -> None:
         super().__init__(coordinator, "datetime", KEY, name)

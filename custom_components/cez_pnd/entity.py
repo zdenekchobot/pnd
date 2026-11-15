@@ -11,6 +11,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import PndCoordinator
 
+# Společná ikona pro „Data od:“ a „Data do:“
+DATE_ICON = "mdi:calendar-clock"
+
 
 async def async_entity_names(hass: HomeAssistant, platform: str) -> dict[str, str]:
     """Přeložené názvy entit {klíč: název} v jazyce HA.

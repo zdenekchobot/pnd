@@ -21,7 +21,8 @@ Při každé aktualizaci stáhne souhrnnou tabulku sestavy „00 Profil spotřeb
 | `sensor.elm<číslo>_end_date` | Data do: / End date | konec vyžádaného intervalu | datum a čas |
 | `datetime.elm<číslo>_start_date` | Data od: / Start date | nastavení integrace | datum a čas |
 
-Všechny entity patří zařízení `ELM<číslo>`. Hodnoty importu a exportu mají 3 desetinná místa,
+Všechny entity patří zařízení `ELM<číslo>`. „Data od:“ a „Data do:“ mají ikonu `mdi:calendar-clock`,
+senzory stavu `mdi:progress-pencil`. Hodnoty importu a exportu mají 3 desetinná místa,
 `device_class: energy` a `state_class: total` s `last_reset` = „Data od“.
 
 „Data do:“ je konec intervalu, za který se data při posledním čtení vyžádala, tedy čas toho
@@ -34,7 +35,8 @@ protože ČEZ data doplňuje se zpožděním. Míru doplnění ukazují senzory 
 2. Restartuj Home Assistant.
 3. **Nastavení → Zařízení a služby → Přidat integraci → „ČEZ Distribuce PND“**.
 
-Vyžaduje Home Assistant 2026.10 nebo novější.
+Vyžaduje Home Assistant 2026.10 nebo novější. Logo integrace je přibalené ve složce
+`custom_components/cez_pnd/brand` a Home Assistant ho zobrazí bez dalšího nastavení.
 
 ## Nastavení
 

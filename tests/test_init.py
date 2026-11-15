@@ -127,6 +127,13 @@ async def test_entities(hass: HomeAssistant, mock_client, language, names) -> No
     assert float(hass.states.get("sensor.elm123456_export").state) == 5440.38
     assert float(hass.states.get("sensor.elm123456_import_status").state) == 100.0
     assert hass.states.get("sensor.elm123456_import_status").attributes["unit_of_measurement"] == "%"
+    for eid, icon in (
+        ("sensor.elm123456_import_status", "mdi:progress-pencil"),
+        ("sensor.elm123456_export_status", "mdi:progress-pencil"),
+        ("sensor.elm123456_end_date", "mdi:calendar-clock"),
+        ("datetime.elm123456_start_date", "mdi:calendar-clock"),
+    ):
+        assert hass.states.get(eid).attributes["icon"] == icon, eid
     end = hass.states.get("sensor.elm123456_end_date")
     assert end.attributes["device_class"] == "timestamp"
     assert datetime.fromisoformat(end.state).isoformat().startswith("2026-11-11T")
@@ -211,3 +218,10 @@ async def test_user_rename_kept(hass: HomeAssistant, mock_client) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get("sensor.elm123456_import").attributes["friendly_name"] == "Spotřeba"
+
+
+async def test_brand_icons(hass: HomeAssistant) -> None:
+    from homeassistant.loader import async_get_integration
+
+    integration = await async_get_integration(hass, DOMAIN)
+    assert integration.has_branding
