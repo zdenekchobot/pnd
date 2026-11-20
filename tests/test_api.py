@@ -1,8 +1,18 @@
 """Testy parseru proti uloženým odpovědím API (zachytí změnu formátu)."""
 
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.cez_pnd.api import parse_number, parse_pnd_datetime, parse_stats
+import aiohttp
+import pytest
+
+from custom_components.cez_pnd.api import (
+    PndClient,
+    PndError,
+    parse_number,
+    parse_pnd_datetime,
+    parse_stats,
+)
 from custom_components.cez_pnd.coordinator import extract
 
 from .conftest import load
@@ -51,3 +61,20 @@ def test_definition_shape():
     d = load("definition.json")
     assert d["electrometers"][0]["value"] == "123456"
     assert d["deviceSets"][0]["value"] == 10001
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [
+        aiohttp.ClientResponseError(MagicMock(real_url="x"), (), status=500),
+        aiohttp.ClientConnectionError("down"),
+        TimeoutError(),
+    ],
+)
+async def test_login_network_error_is_pnd_error(exc):
+    """Chyba sítě/HTTP 500 během přihlášení -> PndError (dočasná chyba)."""
+    client = PndClient("a", "b")
+    with patch.object(client, "_follow", AsyncMock(side_effect=exc)):
+        with pytest.raises(PndError):
+            await client.get_stats(-1003, datetime(2026, 1, 1), datetime(2026, 1, 2))
+    await client.close()

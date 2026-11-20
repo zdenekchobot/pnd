@@ -9,7 +9,6 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -27,6 +26,10 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Kolik chyb přihlášení za sebou se toleruje, než se nabídne nové přihlášení.
+# Portál občas vrací chyby i při správném hesle, polling proto běží dál.
+AUTH_FAILURES_BEFORE_REAUTH = 3
 
 
 def entry_options(entry: ConfigEntry) -> dict[str, Any]:
@@ -87,6 +90,7 @@ class PndCoordinator(DataUpdateCoordinator[PndData]):
         self.client = client
         self.electrometer = str(opts[CONF_ELECTROMETER])
         self.date_from = date_from_of(entry)
+        self._auth_failures = 0
 
     async def _async_update_data(self) -> PndData:
         now = dt_util.now().replace(tzinfo=None, second=0, microsecond=0)
@@ -95,7 +99,13 @@ class PndCoordinator(DataUpdateCoordinator[PndData]):
                 ASSEMBLY, self.date_from, now, electrometer=self.electrometer
             )
         except PndAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
+            self._auth_failures += 1
+            # Při startu hned, jinak až po opakovaných chybách. Ne ConfigEntryAuthFailed:
+            # to by další stahování zastavilo; HA při startu nastavení opakuje.
+            if self.data is None or self._auth_failures >= AUTH_FAILURES_BEFORE_REAUTH:
+                self.config_entry.async_start_reauth(self.hass)
+            raise UpdateFailed(str(err)) from err
         except PndError as err:
             raise UpdateFailed(str(err)) from err
+        self._auth_failures = 0
         return extract(parse_stats(raw))

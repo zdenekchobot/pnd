@@ -264,17 +264,19 @@ class PndClient:
         return await self._call("GET", url, None, retry)
 
     async def _call(self, method: str, url: str, body: Any, retry: bool = True) -> Any:
-        if not self._logged_in and retry:
-            await self.login()
+        # Síťové chyby a HTTP chyby (např. 500) i během přihlášení -> PndError
         try:
-            return await self._request(method, url, body)
-        except _SessionExpired:
-            if not retry:
-                raise PndAuthError("Neplatná session po přihlášení") from None
-            _LOGGER.debug("Session vypršela, přihlašuji znovu")
-            await self.login()
-            return await self._request(method, url, body)
-        except aiohttp.ClientError as err:
+            if not self._logged_in and retry:
+                await self.login()
+            try:
+                return await self._request(method, url, body)
+            except _SessionExpired:
+                if not retry:
+                    raise PndAuthError("Neplatná session po přihlášení") from None
+                _LOGGER.debug("Session vypršela, přihlašuji znovu")
+                await self.login()
+                return await self._request(method, url, body)
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise PndError(f"Chyba komunikace: {err}") from err
 
     async def get_definition(self) -> dict[str, Any]:
