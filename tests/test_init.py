@@ -181,9 +181,48 @@ async def test_auth_error_starts_reauth(hass: HomeAssistant, mock_client) -> Non
     entry.add_to_hass(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    assert entry.state is ConfigEntryState.SETUP_ERROR
+    # Nastavení se bude dál opakovat (výpadek portálu), ale nabídne se reauth
+    assert entry.state is ConfigEntryState.SETUP_RETRY
     flows = hass.config_entries.flow.async_progress()
     assert any(f["context"]["source"] == "reauth" for f in flows)
+
+
+async def test_auth_error_keeps_polling(hass: HomeAssistant, mock_client) -> None:
+    """Chyba přihlášení za běhu nezastaví stahování; reauth až po opakování."""
+    from custom_components.cez_pnd.coordinator import AUTH_FAILURES_BEFORE_REAUTH
+
+    entry = _entry()
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    eid = "binary_sensor.elm123456_status"
+
+    def reauth_flows():
+        return [
+            f for f in hass.config_entries.flow.async_progress()
+            if f["context"]["source"] == "reauth"
+        ]
+
+    mock_client["get_stats"].side_effect = PndAuthError("portál vrátil chybu")
+    for _ in range(AUTH_FAILURES_BEFORE_REAUTH - 1):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+    assert hass.states.get(eid).state == "on"
+    assert not reauth_flows()
+    assert coordinator._unsub_refresh is not None  # další pokus je naplánovaný
+
+    mock_client["get_stats"].side_effect = None
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(eid).state == "off"
+
+    mock_client["get_stats"].side_effect = PndAuthError("bad")
+    for _ in range(AUTH_FAILURES_BEFORE_REAUTH):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+    assert reauth_flows()
+    assert coordinator._unsub_refresh is not None
 
 
 async def test_migrate_v1(hass: HomeAssistant, mock_client) -> None:
