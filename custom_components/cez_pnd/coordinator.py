@@ -31,6 +31,9 @@ _LOGGER = logging.getLogger(__name__)
 # Portál občas vrací chyby i při správném hesle, polling proto běží dál.
 AUTH_FAILURES_BEFORE_REAUTH = 3
 
+# Po chybě se další pokus zkusí dřív než za běžný interval (ten může být až 24 h).
+RETRY_INTERVAL = timedelta(minutes=5)
+
 
 def entry_options(entry: ConfigEntry) -> dict[str, Any]:
     """Data + options (options mají přednost)."""
@@ -78,14 +81,15 @@ class PndCoordinator(DataUpdateCoordinator[PndData]):
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: PndClient) -> None:
         opts = entry_options(entry)
+        self._normal_interval = timedelta(
+            minutes=int(opts.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
+        )
         super().__init__(
             hass,
             _LOGGER,
             config_entry=entry,
             name=DOMAIN,
-            update_interval=timedelta(
-                minutes=int(opts.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
-            ),
+            update_interval=self._normal_interval,
         )
         self.client = client
         self.electrometer = str(opts[CONF_ELECTROMETER])
@@ -93,6 +97,15 @@ class PndCoordinator(DataUpdateCoordinator[PndData]):
         self._auth_failures = 0
 
     async def _async_update_data(self) -> PndData:
+        try:
+            data = await self._fetch()
+        except UpdateFailed:
+            self.update_interval = min(RETRY_INTERVAL, self._normal_interval)
+            raise
+        self.update_interval = self._normal_interval
+        return data
+
+    async def _fetch(self) -> PndData:
         now = dt_util.now().replace(tzinfo=None, second=0, microsecond=0)
         try:
             raw = await self.client.get_stats(

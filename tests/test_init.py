@@ -293,3 +293,29 @@ async def test_status_binary_sensor(hass: HomeAssistant, mock_client) -> None:
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(eid).state == "off"
+
+
+async def test_retry_sooner_after_error(hass: HomeAssistant, mock_client) -> None:
+    """Po chybě portálu se zkusí znovu za 5 min, po úspěchu zpět na běžný interval."""
+    from datetime import timedelta
+
+    from custom_components.cez_pnd.api import PndError
+    from custom_components.cez_pnd.coordinator import RETRY_INTERVAL
+
+    entry = _entry()
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    assert coordinator.update_interval == timedelta(minutes=60)
+
+    mock_client["get_stats"].side_effect = PndError("Chyba komunikace: 500")
+    await coordinator.async_refresh()
+    assert coordinator.update_interval == RETRY_INTERVAL
+    assert hass.states.get("binary_sensor.elm123456_status").state == "on"
+
+    mock_client["get_stats"].side_effect = None
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert coordinator.update_interval == timedelta(minutes=60)
+    assert hass.states.get("binary_sensor.elm123456_status").state == "off"
