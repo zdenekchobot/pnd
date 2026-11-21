@@ -50,6 +50,10 @@ class _SessionExpired(PndError):
     """Session vypršela."""
 
 
+class _ServerError(PndError):
+    """Portál vrátil 5xx (často i kvůli rozbité session)."""
+
+
 def fmt_dt(dt: datetime) -> str:
     """Formát data používaný portálem."""
     return dt.strftime("%d.%m.%Y %H:%M")
@@ -194,6 +198,9 @@ class PndClient:
             ) as resp:
                 _LOGGER.debug("%s %s -> %s", method, url[:150], resp.status)
                 self._jar.update(url, resp.headers.getall("Set-Cookie", []))
+                if resp.status >= 500:
+                    # Výpadek portálu/CAS není špatné heslo -> dočasná chyba
+                    resp.raise_for_status()
                 if resp.status not in (301, 302, 303, 307, 308):
                     return url, await resp.text()
                 loc = resp.headers.get("Location", "")
@@ -210,6 +217,13 @@ class PndClient:
 
     async def login(self) -> None:
         """CAS login -> OAuth2 redirect -> session cookie v PND."""
+        try:
+            await self._login()
+        except (aiohttp.ClientError, TimeoutError) as err:
+            self._logged_in = False
+            raise PndError(f"Chyba komunikace: {err}") from err
+
+    async def _login(self) -> None:
         self._jar.clear()
         self._logged_in = False
 
@@ -255,6 +269,8 @@ class PndClient:
             self._jar.update(url, resp.headers.getall("Set-Cookie", []))
             if resp.status in (301, 302, 303, 401, 403):
                 raise _SessionExpired
+            if resp.status >= 500:
+                raise _ServerError(f"{resp.status}, message='{resp.reason}', url='{url}'")
             resp.raise_for_status()
             if "json" not in resp.headers.get("Content-Type", ""):
                 raise _SessionExpired
@@ -263,21 +279,39 @@ class PndClient:
     async def _get_json(self, url: str, retry: bool = True) -> Any:
         return await self._call("GET", url, None, retry)
 
+    async def _reset(self) -> None:
+        """Zahodí session i cookies; další volání se přihlásí znovu."""
+        self._logged_in = False
+        self._jar.clear()
+        await self.close()
+
     async def _call(self, method: str, url: str, body: Any, retry: bool = True) -> Any:
-        # Síťové chyby a HTTP chyby (např. 500) i během přihlášení -> PndError
+        # Síťové chyby a HTTP chyby (např. 500) i během přihlášení -> PndError.
+        # Po jakékoli chybě se session zahodí, aby se další pokus přihlásil
+        # načisto (po 500 portál session často zneplatní, ale nepřesměruje).
         try:
             if not self._logged_in and retry:
                 await self.login()
             try:
                 return await self._request(method, url, body)
-            except _SessionExpired:
+            except (_SessionExpired, _ServerError) as err:
                 if not retry:
+                    if isinstance(err, _ServerError):
+                        raise
                     raise PndAuthError("Neplatná session po přihlášení") from None
-                _LOGGER.debug("Session vypršela, přihlašuji znovu")
+                _LOGGER.debug("%s, přihlašuji znovu", err or "Session vypršela")
+                await self._reset()
                 await self.login()
                 return await self._request(method, url, body)
-        except (aiohttp.ClientError, TimeoutError) as err:
+        except _ServerError as err:
+            await self._reset()
             raise PndError(f"Chyba komunikace: {err}") from err
+        except (aiohttp.ClientError, TimeoutError) as err:
+            await self._reset()
+            raise PndError(f"Chyba komunikace: {err}") from err
+        except PndError:
+            await self._reset()
+            raise
 
     async def get_definition(self) -> dict[str, Any]:
         """Sestavy, sady zařízení, elektroměry."""

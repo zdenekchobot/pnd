@@ -27,7 +27,9 @@ senzory stavu `mdi:progress-pencil`.
 
 `PND status` (`device_class: problem`, ikona `mdi:refresh`) se zapne, když poslední stažení
 selže (přihlášení, síť, chyba portálu). Text chyby je v atributu `error`. Hodí se pro
-automatizaci s upozorněním. Pokud se nepodaří úplně první načtení po startu HA, integrace se
+automatizaci s upozorněním. Po chybě se integrace při dalším pokusu přihlásí znovu a další
+pokus proběhne už za 5 minut (ne až po nastaveném intervalu); po úspěšném stažení se status
+vypne a interval se vrátí na nastavenou hodnotu. Pokud se nepodaří úplně první načtení po startu HA, integrace se
 nenačte vůbec a Home Assistant ji zkouší načíst znovu; to je vidět u integrace v Nastavení. Hodnoty importu a exportu mají 3 desetinná místa,
 `device_class: energy` a `state_class: total` s `last_reset` = „Data od“.
 
